@@ -1,35 +1,90 @@
 version: "3.8"
 
+########################
+# 1) CRÉATION DU RÉSEAU
+########################
+# On déclare un réseau nommé "traefik" en externe (pour que Traefik
+# et tous les services s’y connectent).
+networks:
+  traefik:
+    external: true
+
+
 services:
+  ##################################
+  # 2) SERVICE TRAEFIK (Reverse-Proxy)
+  ##################################
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      # si tu veux HTTPS via Let's Encrypt, décommente ci-dessous :
+      # - "--entrypoints.websecure.address=:443"
+      # - "--certificatesresolvers.le.acme.tlschallenge=true"
+      # - "--certificatesresolvers.le.acme.email=ton-email@example.com"
+      # - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      # - "--providers.file.filename=/traefik/traefik_dynamic.yml"  # si tu veux du dynamic file (facultatif)
+    ports:
+      - "80:80"
+      # si tu actives HTTPS, expose 443 aussi :
+      # - "443:443"
+      # Dashboard Traefik (facultatif) :
+      - "9000:9000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"          # pour stocker les certificats ACME (si activé)
+      - "./traefik_dynamic.yml:/traefik/traefik_dynamic.yml:ro"  # (facultatif) config dynamique
+    networks:
+      - traefik
+
+
+  ##################################
+  # 3) SERVICE COLLABZONE (Flask)
+  ##################################
   collabzone:
     build: .
     container_name: collabzone
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
+      # Le router s'appelle "collabzone" et déclenchera la règle Host():
       - "traefik.http.routers.collabzone.rule=Host(`collabzone.betaclicdigitale.com`)"
-      - "traefik.http.services.collabzone.loadbalancer.server.port=5000"
+      # Si tu veux HTTPS, ajoute "websecure" et le resolver let's encrypt :
+      # - "traefik.http.routers.collabzone.entrypoints=websecure"
+      # - "traefik.http.routers.collabzone.tls.certresolver=le"
       - "traefik.http.routers.collabzone.entrypoints=web"
+      # Expose le service interne sur le port 5000 (celui que gunicorn écoute)
+      - "traefik.http.services.collabzone.loadbalancer.server.port=5000"
     volumes:
       - ./static/uploads:/app/static/uploads
     networks:
       - traefik
+    # (Optionnel) Si tu veux aussi accéder directement via http://IP:5001, décommente :
+    # ports:
+    #   - "5001:5000"
 
+
+  ##################################
+  # 4) SERVICE ADMINER (UI SQLite/MySQL/PostgreSQL)
+  ##################################
   adminer:
-    image: adminer
+    image: adminer:latest
+    container_name: adminer
     restart: unless-stopped
-    ports:
-      - 8081:8080
-    volumes:
-      - ./static/uploads:/var/www/html
-    networks:
-      - traefik
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.adminer.rule=Host(`adminer.betaclicdigitale.com`)"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
       - "traefik.http.routers.adminer.entrypoints=web"
-
-networks:
-  traefik:
-    external: true
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
+    volumes:
+      # On monte le dossier où se trouve ta DB SQLite (ex : static/uploads)
+      - ./static/uploads:/var/www/html
+    networks:
+      - traefik
+    ports:
+      # Expose en cas d’accès direct (facultatif). Sinon, tu utilises adminer.betaclicdigitale.com
+      - "8081:8080"
