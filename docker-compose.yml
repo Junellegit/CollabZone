@@ -14,9 +14,8 @@ services:
       - traefik
     volumes:
       - ./static/uploads:/app/static/uploads
-    # Garde le port 5001:5000 SEULEMENT si tu veux accéder directement à l’app sans Traefik
     ports:
-      - "5001:5000"
+      - "5001:5000"  # optionnel (accès direct, sinon commente cette ligne)
 
   adminer:
     image: adminer
@@ -25,7 +24,6 @@ services:
       - 8081:8080
     networks:
       - traefik
-    # Optionnel : monte le dossier contenant tes .db pour y accéder via Adminer si besoin
     volumes:
       - ./static/uploads:/app/static/uploads
 
