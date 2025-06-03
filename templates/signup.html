@@ -1,0 +1,55 @@
+{% from 'includes/_formhelpers.html' import render_field %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Project Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                    Créer un compte
+                </h2>
+            </div>
+            <form class="mt-8 space-y-6" method="POST" action="{{ url_for('signup') }}">
+                {{ form.hidden_tag() }}
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        {{ render_field(form.username, class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary focus:border-primary", placeholder="Nom d'utilisateur") }}
+                    </div>
+                    <div>
+                        {{ render_field(form.email, class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary focus:border-primary", placeholder="Email") }}
+                    </div>
+                    <div>
+                        {{ render_field(form.password, class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary focus:border-primary", placeholder="Mot de passe") }}
+                    </div>
+                    <div>
+                        {{ render_field(form.confirm_password, class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-primary focus:border-primary", placeholder="Confirmer le mot de passe") }}
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" 
+                            class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        S'inscrire
+                    </button>
+                </div>
+            </form>
+            <div class="text-center">
+                <p class="text-sm text-gray-600">
+                    Déjà un compte ?
+                    <a href="{{ url_for('login') }}" class="font-medium text-primary hover:text-secondary">
+                        Se connecter
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
