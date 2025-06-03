@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   collabzone:
     build: .
@@ -9,8 +10,25 @@ services:
       - "traefik.http.routers.collabzone.rule=Host(`collabzone.betaclicdigitale.com`)"
       - "traefik.http.services.collabzone.loadbalancer.server.port=5000"
       - "traefik.http.routers.collabzone.entrypoints=web"
-    # Tu peux commenter ports: sauf si accès direct (hors traefik) souhaité
-    ports:
-      - "5001:5000"
+    networks:
+      - traefik
     volumes:
       - ./static/uploads:/app/static/uploads
+    # Garde le port 5001:5000 SEULEMENT si tu veux accéder directement à l’app sans Traefik
+    ports:
+      - "5001:5000"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    networks:
+      - traefik
+    # Optionnel : monte le dossier contenant tes .db pour y accéder via Adminer si besoin
+    volumes:
+      - ./static/uploads:/app/static/uploads
+
+networks:
+  traefik:
+    external: true
