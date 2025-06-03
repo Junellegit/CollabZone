@@ -1,19 +1,16 @@
 version: "3.8"
-
 services:
   collabzone:
     build: .
     container_name: collabzone
     restart: unless-stopped
-    ports:
-      - "5001:5000"
-    volumes:
-      - ./static/uploads:/app/static/uploads
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.collabzone.rule=Host(`collabzone.betaclicdigitale.com`)"
       - "traefik.http.services.collabzone.loadbalancer.server.port=5000"
       - "traefik.http.routers.collabzone.entrypoints=web"
-      # Pour HTTPS auto (Let's Encrypt) si Traefik le gère déjà :
-      # - "traefik.http.routers.collabzone.entrypoints=websecure"
-      # - "traefik.http.routers.collabzone.tls.certresolver=myresolver"
+    # Tu peux commenter ports: sauf si accès direct (hors traefik) souhaité
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./static/uploads:/app/static/uploads
