@@ -308,18 +308,67 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # API DASHBOARD/CONTRIBUTIONS
-@app.route('/api/dashboard', methods=['GET'])
+@app.route('/api/dashboard/data')
 @login_required
 def dashboard_data():
     member = Member.query.filter_by(user_id=current_user.id).first()
-    stats = {
-        'tasks_todo': Task.query.filter_by(assigned_member_id=member.id, status='todo').count(),
-        'tasks_in_progress': Task.query.filter_by(assigned_member_id=member.id, status='in_progress').count(),
-        'tasks_done': Task.query.filter_by(assigned_member_id=member.id, status='done').count(),
-        'contributions': Contribution.query.filter_by(member_id=member.id).count(),
-        # à adapter selon plus de data si tu veux
-    }
-    return jsonify(stats)
+    if not member:
+        return jsonify({
+            'todo': 0,
+            'in_progress': 0,
+            'done': 0
+        })
+    return jsonify({
+        'todo': Task.query.filter_by(assigned_member_id=member.id, status='todo').count(),
+        'in_progress': Task.query.filter_by(assigned_member_id=member.id, status='in_progress').count(),
+        'done': Task.query.filter_by(assigned_member_id=member.id, status='done').count()
+    })
+
+@app.route('/api/user/profile', methods=['GET'])
+@login_required
+def get_profile():
+    member = Member.query.filter_by(user_id=current_user.id).first()
+    if not member:
+        return jsonify({'error': 'Profil non trouvé'}), 404
+    return jsonify({
+        'username': current_user.username,
+        'email': current_user.email,
+        'name': member.name,
+        'role': member.role
+    })
+
+@app.route('/api/user/profile', methods=['PUT'])
+@login_required
+def update_profile():
+    data = request.get_json()
+    user = User.query.get(current_user.id)
+    member = Member.query.filter_by(user_id=current_user.id).first()
+    
+    if not member:
+        return jsonify({'error': 'Profil non trouvé'}), 404
+        
+    # Mise à jour des champs de l'utilisateur
+    if 'username' in data:
+        user.username = data['username']
+    if 'email' in data:
+        user.email = data['email']
+    
+    # Mise à jour des champs du membre
+    if 'name' in data:
+        member.name = data['name']
+    if 'role' in data:
+        member.role = data['role']
+    
+    db.session.commit()
+    return jsonify({
+        'message': 'Profil mis à jour avec succès',
+        'user': {
+            'username': user.username,
+            'email': user.email,
+            'name': member.name,
+            'role': member.role
+        }
+    })
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
