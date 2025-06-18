@@ -14,7 +14,7 @@ def login():
             login_user(user)
             return redirect(url_for("projects.dashboard"))
         flash("Identifiants incorrects", "error")
-    return render_template("login.html")
+    return render_template("auth/login.html")
 
 
 @auth_bp.route("/logout", methods=["POST"])
@@ -53,4 +53,4 @@ def signup():
 
         return redirect(url_for('auth.login'))
 
-    return render_template('signup.html')
+    return render_template('auth/signup.html')
