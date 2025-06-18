@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  collabzone:
+    build: .
+    container_name: collabzone
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.collabzone.rule=Host(`collabzone.betaclicdigitale.com`)"
+      - "traefik.http.services.collabzone.loadbalancer.server.port=5000"
+      - "traefik.http.routers.collabzone.entrypoints=web"
+    networks:
+      - traefik
+    volumes:
+      - ./static/uploads:/app/static/uploads
+    ports:
+      - "5001:5000"  # optionnel (accès direct, sinon commente cette ligne)
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    networks:
+      - traefik
+    volumes:
+      - ./static/uploads:/app/static/uploads
+
+networks:
+  traefik:
+    external: true
