@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
 
 def generate_uuid():
-    """Retourne un identifiant unique de 32 caractères (hex)."""
+    """Retourne un identifiant unique de 32 caractères (hex)."""
     return uuid.uuid4().hex
 
 
@@ -15,7 +15,10 @@ class User(UserMixin, db.Model):
     id = db.Column(db.String(32), primary_key=True, default=generate_uuid)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # prof, etudiant, admin
+    first_name = db.Column(db.String(80), nullable=True)
+    last_name = db.Column(db.String(80), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    role = db.Column(db.String(20), nullable=False, default="etudiant")  # prof, etudiant, admin
 
     # Helpers password
     def set_password(self, pwd):
@@ -32,6 +35,9 @@ class Project(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     owner_id = db.Column(db.String(32), db.ForeignKey("user.id"))
     owner = db.relationship("User", backref="owned_projects")
+    tasks = db.relationship("Task", backref="project", lazy=True)
+    messages = db.relationship("Message", backref="project", lazy=True)
+    files = db.relationship("File", backref="project", lazy=True)
 
 
 class Task(db.Model):
@@ -40,6 +46,7 @@ class Task(db.Model):
     status = db.Column(db.String(20), default="todo")  # todo, doing, done
     project_id = db.Column(db.String(32), db.ForeignKey("project.id"))
     assignee_id = db.Column(db.String(32), db.ForeignKey("user.id"))
+    assignee = db.relationship("User", backref="assigned_tasks")
 
 
 class Message(db.Model):
@@ -48,6 +55,7 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     project_id = db.Column(db.String(32), db.ForeignKey("project.id"))
     author_id = db.Column(db.String(32), db.ForeignKey("user.id"))
+    author = db.relationship("User", backref="messages")
 
 
 class File(db.Model):

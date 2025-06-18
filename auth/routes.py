@@ -7,8 +7,8 @@ from models import db, User
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             login_user(user)
@@ -31,7 +31,7 @@ def signup():
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         password = request.form.get('password')
-        bio = request.form.get('bio')
+        bio = request.form.get('bio', '')
 
         user = User.query.filter_by(username=username).first()
 
@@ -44,7 +44,8 @@ def signup():
             first_name=first_name,
             last_name=last_name,
             password_hash=generate_password_hash(password, method='pbkdf2:sha256'),
-            bio=bio
+            bio=bio,
+            role='etudiant'  # Default role
         )
 
         db.session.add(new_user)
@@ -52,4 +53,4 @@ def signup():
 
         return redirect(url_for('auth.login'))
 
-    return render_template('auth/signup.html')
+    return render_template('signup.html')

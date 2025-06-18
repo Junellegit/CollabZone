@@ -19,11 +19,12 @@ def create_app():
 
     # Blueprints
     from auth import auth_bp
-    from projects import proj_bp, kanban_ns
-    from chat import chat_ns
+    from projects import projects_bp as proj_bp, kanban_ns
+    from chat import chat_bp, chat_ns
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(proj_bp)
+    app.register_blueprint(chat_bp)
     socketio.on_namespace(kanban_ns)
     socketio.on_namespace(chat_ns)
 
