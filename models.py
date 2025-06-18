@@ -19,8 +19,9 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String(80), nullable=True)
     last_name = db.Column(db.String(80), nullable=True)
     bio = db.Column(db.Text, nullable=True)
-    avatar_url = db.Column(db.String(200), nullable=True, default=None) # Chemin vers l'avatar
+    avatar_url = db.Column(db.String(200), nullable=True)
     role = db.Column(db.String(20), nullable=False, default="etudiant")  # prof, etudiant, admin
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Helpers password
     def set_password(self, pwd):

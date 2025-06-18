@@ -148,7 +148,7 @@
         </button>
       </div>
       
-      <form method="POST" action="/projects/create">
+      <form method="POST" action="{{ url_for('projects.create_project') }}" id="createProjectForm">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nom du projet</label>
@@ -188,5 +188,64 @@ function showCreateProjectModal() {
 function hideCreateProjectModal() {
   document.getElementById('createProjectModal').classList.add('hidden');
 }
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle project creation via AJAX
+  const createForm = document.getElementById('createProjectForm');
+  if (createForm) {
+    createForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const submitButton = this.querySelector('button[type="submit"]');
+      const originalText = submitButton.innerHTML;
+      
+      // Show loading state
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<i class="bx bx-loader-alt animate-spin mr-2"></i>Création...';
+      
+      fetch("{{ url_for('projects.create_project') }}", {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => Promise.reject(err));
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.success) {
+          // Show success notification
+          if (typeof showNotification !== 'undefined') {
+            showNotification('success', 'Succès', data.message);
+          }
+          
+          // Redirect after a short delay
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1000);
+        } else {
+          throw new Error(data.error || 'Une erreur est survenue');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        
+        // Show error notification
+        if (typeof showNotification !== 'undefined') {
+          showNotification('error', 'Erreur', error.message || 'Une erreur est survenue');
+        } else {
+          alert('Erreur: ' + (error.message || 'Une erreur est survenue'));
+        }
+        
+        // Reset button
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalText;
+      });
+    });
+  }
+});
 </script>
 {% endblock %}

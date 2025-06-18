@@ -1,27 +1,214 @@
 {% extends 'base.html' %}
-{% block title %}Profil Utilisateur | CollabZone{% endblock %}
+{% block title %}Mon Profil - CollabZone{% endblock %}
+
 {% block head_extra %}
-  <style>
-    .gradient-bg {
-      background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
-    }
-    .gradient-card {
-      background: linear-gradient(135deg, #f472b6 0%, #fbbf24 100%);
-    }
-    .dark .gradient-bg { background: linear-gradient(135deg, #312e81 0%, #0e7490 100%); }
-    .dark .gradient-card { background: linear-gradient(135deg, #be185d 0%, #f59e42 100%); }
-  </style>
+<script>
+  // Pass user data to JavaScript
+  window.userData = {
+    first_name: "{{ current_user.first_name or '' }}",
+    last_name: "{{ current_user.last_name or '' }}",
+    bio: "{{ current_user.bio or '' }}",
+    email: "{{ current_user.email }}",
+    username: "{{ current_user.username }}"
+  };
+</script>
 {% endblock %}
+
 {% block content %}
-  <div class="gradient-bg py-10 px-4 min-h-screen flex flex-col items-center">
-    <div class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 flex flex-col gap-8">
-      {% include 'components/profile_avatar.html' %}
-      {% include 'components/profile_form.html' %}
+<div class="max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Mon Profil</h1>
+    <p class="text-gray-600 dark:text-gray-300 mt-2">Gérez vos informations personnelles et vos préférences</p>
+  </div>
 
-      {% include 'components/profile_preferences.html' %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column - Avatar & Stats -->
+    <div class="lg:col-span-1 space-y-6">
+      <!-- Avatar Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6" x-data="avatarUpload()">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Photo de profil</h2>
+        
+        <div class="flex flex-col items-center">
+          <div class="relative group">
+            <template x-if="avatarUrl">
+              <img :src="avatarUrl" alt="Avatar" 
+                   class="w-32 h-32 rounded-full object-cover border-4 border-purple-200 dark:border-purple-700 shadow-lg">
+            </template>
+            <template x-if="!avatarUrl">
+              <div class="w-32 h-32 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                {{ current_user.username[0].upper() }}
+              </div>
+            </template>
+            
+            <!-- Upload overlay -->
+            <label class="absolute inset-0 w-32 h-32 rounded-full bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+              <i class='bx bx-camera text-white text-2xl' x-show="!loading"></i>
+              <i class='bx bx-loader-alt animate-spin text-white text-2xl' x-show="loading"></i>
+              <input type="file" accept="image/*" class="hidden" @change="onFileChange" :disabled="loading">
+            </label>
+          </div>
+          
+          <button x-show="avatarUrl" @click="removeAvatar" 
+                  class="mt-3 text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+            Supprimer la photo
+          </button>
+        </div>
+      </div>
 
-      {% include 'components/profile_stats.html' %}
+      <!-- Stats Card -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Statistiques</h2>
+        
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">Projets créés</span>
+            <span class="text-2xl font-bold text-purple-600">{{ current_user.owned_projects|length }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">Tâches assignées</span>
+            <span class="text-2xl font-bold text-blue-600">{{ current_user.assigned_tasks|length }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-gray-600 dark:text-gray-300">Membre depuis</span>
+            <span class="text-sm text-gray-700 dark:text-gray-400">{{ current_user.created_at.strftime('%d/%m/%Y') if current_user.created_at else 'Aujourd\'hui' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column - Profile Form & Preferences -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Profile Information -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6" x-data="profileForm()">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Informations personnelles</h2>
+        
+        <form @submit.prevent="saveProfile" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
+              <div class="relative">
+                <i class='bx bx-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'></i>
+                <input type="text" x-model="profile.first_name" 
+                       class="w-full pl-10 pr-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
+                       placeholder="Jean">
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
+              <div class="relative">
+                <i class='bx bx-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'></i>
+                <input type="text" x-model="profile.last_name" 
+                       class="w-full pl-10 pr-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
+                       placeholder="Dupont">
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+            <div class="relative">
+              <i class='bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'></i>
+              <input type="email" value="{{ current_user.email }}" disabled
+                     class="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 cursor-not-allowed">
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pseudo</label>
+            <div class="relative">
+              <i class='bx bx-at absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'></i>
+              <input type="text" value="{{ current_user.username }}" disabled
+                     class="w-full pl-10 pr-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 cursor-not-allowed">
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
+            <div class="relative">
+              <i class='bx bx-info-circle absolute left-3 top-3 text-gray-400'></i>
+              <textarea x-model="profile.bio" rows="3"
+                        class="w-full pl-10 pr-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
+                        placeholder="Parlez-nous de vous..."></textarea>
+            </div>
+          </div>
+          
+          <button type="submit" :disabled="loading"
+                  class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <span x-show="!loading">Enregistrer les modifications</span>
+            <span x-show="loading" class="flex items-center justify-center">
+              <i class='bx bx-loader-alt animate-spin mr-2'></i>
+              Enregistrement...
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Preferences -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6" x-data="userPreferences()">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Préférences</h2>
+        
+        <div class="space-y-4">
+          <!-- Dark Mode Toggle -->
+          <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <h3 class="font-medium text-gray-800 dark:text-white">Mode sombre</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Utiliser le thème sombre</p>
+            </div>
+            <button @click="$root.darkMode = !$root.darkMode" 
+                    :class="$root.darkMode ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+              <span :class="$root.darkMode ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm"></span>
+            </button>
+          </div>
+
+          <!-- Email Notifications -->
+          <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <h3 class="font-medium text-gray-800 dark:text-white">Notifications par email</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Recevoir des notifications par email</p>
+            </div>
+            <button @click="toggleNotification('email')"
+                    :class="preferences.notifications.email ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+              <span :class="preferences.notifications.email ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm"></span>
+            </button>
+          </div>
+
+          <!-- Push Notifications -->
+          <div class="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+            <div>
+              <h3 class="font-medium text-gray-800 dark:text-white">Notifications push</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Recevoir des notifications dans le navigateur</p>
+            </div>
+            <button @click="toggleNotification('push')"
+                    :class="preferences.notifications.push ? 'bg-purple-600' : 'bg-gray-300 dark:bg-gray-600'"
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors">
+              <span :class="preferences.notifications.push ? 'translate-x-6' : 'translate-x-1'"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm"></span>
+            </button>
+          </div>
+
+          <!-- Language -->
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <h3 class="font-medium text-gray-800 dark:text-white">Langue</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Choisir la langue de l'interface</p>
+            </div>
+            <select x-model="preferences.language" 
+                    class="px-3 py-1 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white">
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <script src="{{ url_for('static', filename='js/profile.js') }}" defer></script>
+</div>
+
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

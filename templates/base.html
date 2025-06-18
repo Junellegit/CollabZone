@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr" class="h-full">
+<html lang="fr" class="h-full" :class="{ 'dark': darkMode }">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +16,7 @@
     <!-- Tailwind Config -->
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -97,6 +98,19 @@
         background: #555;
       }
       
+      /* Dark mode scrollbar */
+      .dark ::-webkit-scrollbar-track {
+        background: #374151;
+      }
+      
+      .dark ::-webkit-scrollbar-thumb {
+        background: #6b7280;
+      }
+      
+      .dark ::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+      }
+      
       /* Loading animation */
       .loader {
         border-top-color: #667eea;
@@ -110,8 +124,16 @@
     
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="min-h-full bg-gray-50 font-sans" 
-        x-data="{ darkMode: false, notifications: [] }" 
+  <body class="min-h-full bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-200" 
+        x-data="{ 
+          darkMode: localStorage.getItem('darkMode') === 'true',
+          notifications: [],
+          init() {
+            this.$watch('darkMode', value => {
+              localStorage.setItem('darkMode', value);
+            });
+          }
+        }" 
         data-avatar-url="{% if current_user.is_authenticated %}{{ current_user.avatar_url or '' }}{% endif %}"
         data-flash-messages='{{ get_flashed_messages(with_categories=true) | tojson | safe }}'>
     
@@ -144,8 +166,8 @@
                    }"></i>
               </div>
               <div class="ml-3 w-0 flex-1">
-                <p class="text-sm font-medium text-gray-900 dark:text-gray-900" x-text="notification.title"></p>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" x-text="notification.message"></p>
+                <p class="text-sm font-medium text-gray-900" x-text="notification.title"></p>
+                <p class="mt-1 text-sm text-gray-500" x-text="notification.message"></p>
               </div>
               <div class="ml-4 flex-shrink-0 flex">
                 <button @click="notification.show = false" class="rounded-md inline-flex text-gray-400 hover:text-gray-500">
@@ -183,34 +205,31 @@
           show: true
         };
 
-        // Use Alpine's store if available, otherwise fallback to component data
-        if (Alpine.store) {
-            Alpine.store('notifications').unshift(notification);
-        } else {
-            // This is a fallback if the store is not initialized, might need adjustment
-            let notificationData = document.querySelector('[x-data]').__x.$data.notifications;
-            if(notificationData) {
-                notificationData.unshift(notification);
-            }
-        }
+        const rootData = document.querySelector('[x-data]').__x.$data;
+        rootData.notifications.push(notification);
 
         setTimeout(() => {
-          const index = (Alpine.store ? Alpine.store('notifications') : []).indexOf(notification);
-          if (index > -1) {
-            (Alpine.store ? Alpine.store('notifications') : [])[index].show = false;
-          }
+          notification.show = false;
+          setTimeout(() => {
+            const index = rootData.notifications.indexOf(notification);
+            if (index > -1) {
+              rootData.notifications.splice(index, 1);
+            }
+          }, 300);
         }, 5000);
       }
 
       // Flash messages from Flask
-      document.addEventListener('alpine:initialized', () => {
+      document.addEventListener('DOMContentLoaded', () => {
         const flashMessages = JSON.parse(document.body.dataset.flashMessages || '[]');
         if (flashMessages && flashMessages.length > 0) {
-          flashMessages.forEach(function(message) {
-            const category = message[0];
-            const text = message[1];
-            showNotification(category, category.charAt(0).toUpperCase() + category.slice(1), text);
-          });
+          setTimeout(() => {
+            flashMessages.forEach(function(message) {
+              const category = message[0];
+              const text = message[1];
+              showNotification(category, category.charAt(0).toUpperCase() + category.slice(1), text);
+            });
+          }, 500);
         }
       });
     </script>

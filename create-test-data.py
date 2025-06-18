@@ -27,7 +27,7 @@ def create_test_data():
         )
         db.session.add(test_user)
         db.session.commit()
-        print("Created test user (email: test@example.com, password: password123)")
+        print("✓ Created test user (email: test@example.com, password: password123)")
         
         # Create test project
         test_project = Project(
@@ -37,9 +37,19 @@ def create_test_data():
         )
         db.session.add(test_project)
         db.session.commit()
-        print("Created project 'CollabZone'")
+        print("✓ Created test project")
         
-        # Create test tasks
+        # Create another project
+        demo_project = Project(
+            name="Projet Demo CollabZone",
+            description="Un projet de démonstration avec plusieurs tâches et fonctionnalités",
+            owner_id=test_user.id
+        )
+        db.session.add(demo_project)
+        db.session.commit()
+        print("✓ Created demo project")
+        
+        # Create test tasks for first project
         tasks = [
             Task(title="Concevoir le schéma de base de données", status="done", project_id=test_project.id),
             Task(title="Implémenter l'authentification", status="done", project_id=test_project.id),
@@ -50,11 +60,20 @@ def create_test_data():
             Task(title="Créer le chat de projet", status="todo", project_id=test_project.id),
         ]
         
-        for task in tasks:
+        # Create tasks for demo project
+        demo_tasks = [
+            Task(title="Analyse des besoins", status="done", project_id=demo_project.id),
+            Task(title="Design de l'interface", status="done", project_id=demo_project.id),
+            Task(title="Développement du backend", status="doing", project_id=demo_project.id),
+            Task(title="Tests unitaires", status="todo", project_id=demo_project.id),
+            Task(title="Documentation", status="todo", project_id=demo_project.id),
+        ]
+        
+        for task in tasks + demo_tasks:
             db.session.add(task)
         
         db.session.commit()
-        print("Test data created successfully!")
+        print("✓ Created test tasks")
         
         print("\n=== Données de test créées avec succès! ===")
         print("Vous pouvez maintenant vous connecter avec:")

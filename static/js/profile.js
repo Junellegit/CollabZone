@@ -1,81 +1,131 @@
-// Alpine.js composant pour l'upload d'avatar (connexion backend)
+// Alpine.js component for avatar upload (backend connection)
 function avatarUpload() {
   return {
-    avatarUrl: document.body.getAttribute('data-avatar-url') || '',
+    avatarUrl: '',
+    loading: false,
+    
+    init() {
+      // Get initial avatar URL from the user data
+      this.avatarUrl = document.body.getAttribute('data-avatar-url') || '';
+    },
+    
     onFileChange(e) {
       const file = e.target.files[0];
       if (!file) return;
 
+      this.loading = true;
       const formData = new FormData();
       formData.append('avatar', file);
 
-      fetch('/profile/avatar', {
+      fetch('/projects/profile/avatar', {
         method: 'POST',
-        body: formData,
-        // Headers CSRF si nécessaire, ex: 'X-CSRFToken': '{{ csrf_token() }}'
+        body: formData
       })
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          this.avatarUrl = data.avatar_url + '?t=' + new Date().getTime(); // Cache busting
+          this.avatarUrl = data.avatar_url + '?t=' + new Date().getTime();
+          showNotification('success', 'Succès', 'Avatar mis à jour avec succès');
         } else {
-          console.error('Upload failed:', data.error);
-          alert('Erreur lors de l'upload: ' + data.error);
+          showNotification('error', 'Erreur', data.error || 'Erreur lors de l\'upload');
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Une erreur réseau est survenue.');
+        showNotification('error', 'Erreur', 'Une erreur réseau est survenue');
+      })
+      .finally(() => {
+        this.loading = false;
       });
     },
+    
     removeAvatar() {
-      // TODO: Appeler un endpoint backend pour supprimer le fichier
-      this.avatarUrl = '';
-      // Pour l'instant, on ne fait que vider l'URL côté client
+      if (confirm('Êtes-vous sûr de vouloir supprimer votre avatar ?')) {
+        // For now, just clear the avatar
+        this.avatarUrl = '';
+        // TODO: Add backend endpoint to remove avatar
+      }
     }
   }
 }
 
-// Alpine.js composant pour le formulaire profil (stockage local)
+// Alpine.js component for profile form (DB sync)
 function profileForm() {
   return {
     profile: {
-      nom: localStorage.getItem('profile_nom') || '',
-      bio: localStorage.getItem('profile_bio') || '',
-      competences: localStorage.getItem('profile_competences') || '',
+      first_name: '',
+      last_name: '',
+      bio: '',
     },
+    loading: false,
+    
+    init() {
+      // Load initial data from the page
+      const userData = window.userData || {};
+      this.profile.first_name = userData.first_name || '';
+      this.profile.last_name = userData.last_name || '';
+      this.profile.bio = userData.bio || '';
+    },
+    
     saveProfile() {
-      localStorage.setItem('profile_nom', this.profile.nom);
-      localStorage.setItem('profile_bio', this.profile.bio);
-      localStorage.setItem('profile_competences', this.profile.competences);
-      alert('Profil enregistré !');
+      this.loading = true;
+      
+      fetch('/projects/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(this.profile)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification('success', 'Succès', data.message);
+        } else {
+          showNotification('error', 'Erreur', data.error || 'Erreur lors de la sauvegarde');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showNotification('error', 'Erreur', 'Une erreur est survenue');
+      })
+      .finally(() => {
+        this.loading = false;
+      });
     }
   }
 }
 
-// Alpine.js component for user preferences (localStorage)
+// Alpine.js component for user preferences
 function userPreferences() {
   return {
     preferences: {
-      notifications: JSON.parse(localStorage.getItem('preferences_notifications')) || { email: true },
-      language: localStorage.getItem('preferences_language') || 'fr',
+      notifications: { email: true, push: false },
+      language: 'fr',
     },
+    
     init() {
+      // Load preferences from localStorage
+      const savedNotifications = localStorage.getItem('preferences_notifications');
+      const savedLanguage = localStorage.getItem('preferences_language');
+      
+      if (savedNotifications) {
+        this.preferences.notifications = JSON.parse(savedNotifications);
+      }
+      if (savedLanguage) {
+        this.preferences.language = savedLanguage;
+      }
+      
+      // Watch for changes and save to localStorage
       this.$watch('preferences', (value) => {
         localStorage.setItem('preferences_notifications', JSON.stringify(value.notifications));
         localStorage.setItem('preferences_language', value.language);
+        // In the future, also sync with backend
       }, { deep: true });
     },
+    
     toggleNotification(type) {
-        if(this.preferences.notifications[type] === undefined) {
-          this.preferences.notifications[type] = true;
-        } else {
-          this.preferences.notifications[type] = !this.preferences.notifications[type];
-        }
+      this.preferences.notifications[type] = !this.preferences.notifications[type];
     }
   }
 }
-
-document.addEventListener('alpine:init', () => {
-  feather.replace();
-});

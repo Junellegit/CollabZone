@@ -246,6 +246,13 @@
     e.preventDefault();
     
     const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="bx bx-loader-alt animate-spin mr-2"></i>Création...';
+    
     const taskData = {
       title: formData.get('title'),
       description: formData.get('description'),
@@ -253,7 +260,6 @@
       project_id: projectId
     };
     
-    // Send to server via fetch or socket
     fetch(`/projects/${projectId}/tasks`, {
       method: 'POST',
       headers: {
@@ -261,15 +267,27 @@
       },
       body: JSON.stringify(taskData)
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => Promise.reject(err));
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success) {
         showNotification('success', 'Succès', 'Tâche créée avec succès');
-        location.reload(); // For now, reload to see the new task
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        throw new Error(data.error || 'Une erreur est survenue');
       }
     })
     .catch(error => {
-      showNotification('error', 'Erreur', 'Impossible de créer la tâche');
+      console.error('Error:', error);
+      showNotification('error', 'Erreur', error.message || 'Impossible de créer la tâche');
+      submitButton.disabled = false;
+      submitButton.innerHTML = originalText;
     });
   });
 </script>
