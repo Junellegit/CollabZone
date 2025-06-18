@@ -27,7 +27,7 @@ def create_test_data():
         )
         db.session.add(test_user)
         db.session.commit()
-        print("✓ Created test user (email: test@example.com, password: password123)")
+        print("Created test user (email: test@example.com, password: password123)")
         
         # Create test project
         test_project = Project(
@@ -37,7 +37,7 @@ def create_test_data():
         )
         db.session.add(test_project)
         db.session.commit()
-        print("✓ Created test project")
+        print("Created project 'CollabZone'")
         
         # Create test tasks
         tasks = [
@@ -54,7 +54,7 @@ def create_test_data():
             db.session.add(task)
         
         db.session.commit()
-        print("✓ Created test tasks")
+        print("Test data created successfully!")
         
         print("\n=== Données de test créées avec succès! ===")
         print("Vous pouvez maintenant vous connecter avec:")

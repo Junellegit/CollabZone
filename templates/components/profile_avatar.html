@@ -1,0 +1,16 @@
+<!-- Avatar Upload -->
+<div x-data="avatarUpload()" class="flex flex-col items-center gap-2">
+  <label class="block text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Avatar</label>
+  <div class="relative">
+    <template x-if="avatarUrl">
+      <img :src="avatarUrl" alt="Avatar" class="w-28 h-28 rounded-full object-cover border-4 border-gradient-to-br from-pink-400 to-yellow-400 shadow-lg">
+    </template>
+    <template x-if="!avatarUrl">
+      <div class="w-28 h-28 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-4 border-dashed border-pink-300 dark:border-pink-700 cursor-pointer">
+        <i data-feather="user" class="w-12 h-12 text-gray-400"></i>
+      </div>
+    </template>
+    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" @change="onFileChange">
+    <button x-show="avatarUrl" @click="removeAvatar" class="absolute -bottom-3 right-0 bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded shadow">Supprimer</button>
+  </div>
+</div>

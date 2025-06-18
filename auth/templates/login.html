@@ -1,32 +1,59 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-  <h2 class="text-2xl font-bold mb-6 text-center">Connexion à CollabZone</h2>
-  
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="mb-4 p-3 {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
-          {{ message }}
+<div class="min-h-screen w-full bg-gray-200 dark:bg-gray-900 flex items-center justify-center md:p-4 transition-colors duration-500">
+  <div class="w-full bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg md:rounded-2xl shadow-2xl p-8 border-y md:border border-white/20">
+    
+    <div class="text-center mb-8">
+      <a href="{{ url_for('projects.dashboard') }}">
+          <img src="{{ url_for('static', filename='Logo.png') }}" alt="CollabZone Logo" class="h-12 w-auto mx-auto mb-4">
+      </a>
+      <h2 class="text-3xl font-bold text-white drop-shadow-lg">Bienvenue !</h2>
+      <p class="text-white/80 mt-2">Connectez-vous pour accéder à votre espace.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-3 rounded-lg {% if category == 'error' %}bg-red-500/50 text-white{% else %}bg-green-500/50 text-white{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
+      <div>
+        <label for="email" class="block text-sm font-medium text-white/90">Adresse email</label>
+        <div class="mt-1 relative">
+          <i class="bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+          <input id="email" name="email" type="email" autocomplete="email" required 
+                 class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50"
+                 placeholder="vous@exemple.com">
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-  
-  <form method="post">
-    <label class="block mb-2">Adresse email
-      <input type="email" name="email" class="border w-full p-2 rounded mt-1" required />
-    </label>
-    <label class="block mb-4">Mot de passe
-      <input type="password" name="password" class="border w-full p-2 rounded mt-1" required />
-    </label>
-    <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Se connecter</button>
-  </form>
-  
-  <div class="mt-4 text-center">
-    <p class="text-sm text-gray-600">
-      Pas encore de compte ? 
-      <a href="{{ url_for('auth.signup') }}" class="text-blue-600 hover:text-blue-800">Inscrivez-vous ici</a>
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-white/90">Mot de passe</label>
+        <div class="mt-1 relative">
+          <i class="bx bx-lock-alt absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+          <input id="password" name="password" type="password" autocomplete="current-password" required 
+                 class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50"
+                 placeholder="••••••••">
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" 
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900/50 transition-all transform hover:scale-105">
+          Se connecter
+        </button>
+      </div>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-white/70">
+      Pas encore de compte ?
+      <a href="{{ url_for('auth.signup') }}" class="font-medium text-purple-300 hover:text-purple-200 transition">Inscrivez-vous</a>
     </p>
   </div>
 </div>

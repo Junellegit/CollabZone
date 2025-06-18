@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Profil Utilisateur | CollabZone{% endblock %}
+{% block head_extra %}
+  <style>
+    .gradient-bg {
+      background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+    }
+    .gradient-card {
+      background: linear-gradient(135deg, #f472b6 0%, #fbbf24 100%);
+    }
+    .dark .gradient-bg { background: linear-gradient(135deg, #312e81 0%, #0e7490 100%); }
+    .dark .gradient-card { background: linear-gradient(135deg, #be185d 0%, #f59e42 100%); }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="gradient-bg py-10 px-4 min-h-screen flex flex-col items-center">
+    <div class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 flex flex-col gap-8">
+      {% include 'components/profile_avatar.html' %}
+      {% include 'components/profile_form.html' %}
+
+      {% include 'components/profile_preferences.html' %}
+
+      {% include 'components/profile_stats.html' %}
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/profile.js') }}" defer></script>
+{% endblock %}

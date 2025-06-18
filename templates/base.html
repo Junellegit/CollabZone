@@ -2,21 +2,219 @@
 <html lang="fr" class="h-full">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CollabZone{% endblock %}</title>
 
-    <!-- Tailwind JIT via CDN → pas de Node -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Socket.IO client -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'sans': ['Inter', 'sans-serif'],
+            },
+            animation: {
+              'gradient': 'gradient 8s ease infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulse 3s ease-in-out infinite',
+            },
+            keyframes: {
+              gradient: {
+                '0%, 100%': {
+                  'background-size': '200% 200%',
+                  'background-position': 'left center'
+                },
+                '50%': {
+                  'background-size': '200% 200%',
+                  'background-position': 'right center'
+                }
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' }
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Socket.IO -->
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4/dist/socket.io.min.js"></script>
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+      .gradient-bg {
+        background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      
+      .glass {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      
+      .card-hover {
+        transition: all 0.3s ease;
+      }
+      
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      
+      /* Loading animation */
+      .loader {
+        border-top-color: #667eea;
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+    
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="min-h-full bg-gray-50">
+  <body class="min-h-full bg-gray-50 font-sans" 
+        x-data="{ darkMode: false, notifications: [] }" 
+        data-avatar-url="{% if current_user.is_authenticated %}{{ current_user.avatar_url or '' }}{% endif %}"
+        data-flash-messages='{{ get_flashed_messages(with_categories=true) | tojson | safe }}'>
+    
+    <!-- Notifications Container -->
+    <div class="fixed top-4 right-4 z-50 space-y-2" id="notifications">
+      <template x-for="(notification, index) in notifications" :key="index">
+        <div 
+          x-show="notification.show"
+          x-transition:enter="transition ease-out duration-300"
+          x-transition:enter-start="opacity-0 transform translate-x-full"
+          x-transition:enter-end="opacity-100 transform translate-x-0"
+          x-transition:leave="transition ease-in duration-200"
+          x-transition:leave-start="opacity-100 transform translate-x-0"
+          x-transition:leave-end="opacity-0 transform translate-x-full"
+          class="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto glass"
+          :class="{
+            'border-l-4 border-green-500': notification.type === 'success',
+            'border-l-4 border-red-500': notification.type === 'error',
+            'border-l-4 border-blue-500': notification.type === 'info'
+          }"
+        >
+          <div class="p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <i class="bx text-2xl"
+                   :class="{
+                     'bx-check-circle text-green-500': notification.type === 'success',
+                     'bx-error-circle text-red-500': notification.type === 'error',
+                     'bx-info-circle text-blue-500': notification.type === 'info'
+                   }"></i>
+              </div>
+              <div class="ml-3 w-0 flex-1">
+                <p class="text-sm font-medium text-gray-900 dark:text-gray-900" x-text="notification.title"></p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" x-text="notification.message"></p>
+              </div>
+              <div class="ml-4 flex-shrink-0 flex">
+                <button @click="notification.show = false" class="rounded-md inline-flex text-gray-400 hover:text-gray-500">
+                  <i class='bx bx-x text-xl'></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+
     {% include "navbar.html" %}
-    <main class="container mx-auto p-4">
+    
+    <main class="container mx-auto px-4 py-8">
       {% block content %}{% endblock %}
     </main>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+      <div class="flex items-center justify-center h-full">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+      </div>
+    </div>
+    
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <!-- Notification Helper -->
+    <script>
+      function showNotification(type, title, message) {
+        const notification = {
+          type: type,
+          title: title,
+          message: message,
+          show: true
+        };
+
+        // Use Alpine's store if available, otherwise fallback to component data
+        if (Alpine.store) {
+            Alpine.store('notifications').unshift(notification);
+        } else {
+            // This is a fallback if the store is not initialized, might need adjustment
+            let notificationData = document.querySelector('[x-data]').__x.$data.notifications;
+            if(notificationData) {
+                notificationData.unshift(notification);
+            }
+        }
+
+        setTimeout(() => {
+          const index = (Alpine.store ? Alpine.store('notifications') : []).indexOf(notification);
+          if (index > -1) {
+            (Alpine.store ? Alpine.store('notifications') : [])[index].show = false;
+          }
+        }, 5000);
+      }
+
+      // Flash messages from Flask
+      document.addEventListener('alpine:initialized', () => {
+        const flashMessages = JSON.parse(document.body.dataset.flashMessages || '[]');
+        if (flashMessages && flashMessages.length > 0) {
+          flashMessages.forEach(function(message) {
+            const category = message[0];
+            const text = message[1];
+            showNotification(category, category.charAt(0).toUpperCase() + category.slice(1), text);
+          });
+        }
+      });
+    </script>
+
     {% block scripts %}{% endblock %}
   </body>
 </html>

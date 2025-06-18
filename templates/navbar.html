@@ -1,16 +1,76 @@
-<nav class="bg-white shadow mb-6">
-  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-    {% if current_user.is_authenticated %}
-      <a href="{{ url_for('projects.dashboard') }}" class="font-semibold">CollabZone</a>
-      <form action="{{ url_for('auth.logout') }}" method="post">
-        <button class="text-sm text-red-500" type="submit">Logout</button>
-      </form>
-    {% else %}
-      <a href="{{ url_for('auth.login') }}" class="font-semibold">CollabZone</a>
-      <div class="flex gap-4">
-        <a href="{{ url_for('auth.login') }}" class="text-sm text-blue-600 hover:text-blue-800">Login</a>
-        <a href="{{ url_for('auth.signup') }}" class="text-sm text-blue-600 hover:text-blue-800">Sign Up</a>
-      </div>
-    {% endif %}
+<nav class="gradient-bg glass shadow-lg mb-8 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <a href="{{ url_for('projects.dashboard') }}" class="flex items-center gap-2 text-white font-bold text-xl tracking-tight drop-shadow-lg">
+        <img src="{{ url_for('static', filename='IconLogo.png') }}" alt="CollabZone Icon" class="h-8 w-auto md:hidden animate-float">
+        <img src="{{ url_for('static', filename='Logo.png') }}" alt="CollabZone Logo" class="h-8 w-auto hidden md:block">
+      </a>
+      <span class="hidden md:inline-block ml-4 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold tracking-wider animate-gradient">Plateforme collaborative</span>
+    </div>
+    <div class="flex items-center gap-4">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('projects.profile') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/20 hover:bg-black/40 text-white font-medium shadow transition">
+          <i class="bx bx-user-circle text-xl"></i>
+          <span class="hidden sm:inline">Profil</span>
+        </a>
+        <form action="{{ url_for('auth.logout') }}" method="post" class="inline">
+          <button class="flex items-center gap-2 px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium shadow transition" type="submit">
+            <i class="bx bx-log-out"></i>
+            <span class="hidden sm:inline">Déconnexion</span>
+          </button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/20 hover:bg-black/40 text-white font-medium shadow transition">
+          <i class="bx bx-log-in"></i>
+          <span>Login</span>
+        </a>
+        <a href="{{ url_for('auth.signup') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-pink-400 hover:bg-pink-500 text-white font-medium shadow transition">
+          <i class="bx bx-user-plus"></i>
+          <span>Sign Up</span>
+        </a>
+      {% endif %}
+      <button @click="darkMode = !darkMode" class="ml-2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition" title="Basculer le mode sombre">
+        <i :class="darkMode ? 'bx bx-sun' : 'bx bx-moon'" class="text-lg"></i>
+      </button>
+    </div>
   </div>
 </nav>
+<script>
+  document.addEventListener('alpine:init', () => {
+    // Animation gradient sur le badge
+    const animateGradient = () => {
+      document.querySelectorAll('.animate-gradient').forEach(el => {
+        el.style.background = 'linear-gradient(90deg, #7c3aed, #06b6d4, #f472b6, #fbbf24)';
+        el.style.backgroundSize = '200% 200%';
+        el.animate([
+          { backgroundPosition: 'left center' },
+          { backgroundPosition: 'right center' },
+          { backgroundPosition: 'left center' }
+        ], {
+          duration: 6000,
+          iterations: Infinity
+        });
+      });
+    };
+    animateGradient();
+  });
+</script>
+<style>
+  .gradient-bg {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+</style>

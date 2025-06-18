@@ -1,25 +1,276 @@
 {% extends 'base.html' %}
+
 {% block head_extra %}
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 {% endblock %}
+
 {% block content %}
-<h1 class="text-xl font-semibold mb-4">{{ project.name }} — Kanban</h1>
-<div id="board" class="grid grid-cols-3 gap-4">
-  {% for column in ['todo','doing','done'] %}
-  <div class="bg-gray-100 p-2 rounded">
-    <h2 class="font-semibold capitalize mb-2">{{ column }}</h2>
-    <ul id="{{ column }}" class="min-h-[200px] space-y-2">
-      {% for task in tasks if task.status == column %}
-      <li class="bg-white p-2 rounded shadow" data-id="{{ task.id }}">{{ task.title }}</li>
-      {% endfor %}
-    </ul>
+<div x-data="{ activeTab: 'kanban', showTaskModal: false, showChatPanel: false }">
+  <!-- Project Header -->
+  <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center space-x-2 text-gray-500 text-sm mb-2">
+          <a href="{{ url_for('projects.dashboard') }}" class="hover:text-purple-600">Dashboard</a>
+          <i class='bx bx-chevron-right'></i>
+          <span>{{ project.name }}</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">{{ project.name }}</h1>
+        <p class="text-gray-600 mt-1">{{ project.description or "Aucune description" }}</p>
+      </div>
+      <div class="flex items-center space-x-3">
+        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+          <i class='bx bx-cog mr-1'></i>Paramètres
+        </button>
+        <button @click="showTaskModal = true" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+          <i class='bx bx-plus mr-1'></i>Nouvelle tâche
+        </button>
+      </div>
+    </div>
   </div>
-  {% endfor %}
+
+  <!-- Tabs -->
+  <div class="bg-white rounded-t-xl shadow-lg">
+    <div class="flex border-b">
+      <button @click="activeTab = 'kanban'" 
+              :class="activeTab === 'kanban' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-600 hover:text-gray-800'"
+              class="px-6 py-3 font-medium transition-colors">
+        <i class='bx bx-columns mr-2'></i>Kanban
+      </button>
+      <button @click="activeTab = 'members'" 
+              :class="activeTab === 'members' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-600 hover:text-gray-800'"
+              class="px-6 py-3 font-medium transition-colors">
+        <i class='bx bx-group mr-2'></i>Membres
+      </button>
+      <button @click="activeTab = 'files'" 
+              :class="activeTab === 'files' ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-600 hover:text-gray-800'"
+              class="px-6 py-3 font-medium transition-colors">
+        <i class='bx bx-file mr-2'></i>Fichiers
+      </button>
+      <button @click="showChatPanel = !showChatPanel" 
+              class="px-6 py-3 font-medium text-gray-600 hover:text-gray-800 transition-colors ml-auto">
+        <i class='bx bx-message-square-dots mr-2'></i>Chat
+        <span class="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="bg-white rounded-b-xl shadow-lg p-6">
+    <!-- Kanban Tab -->
+    <div x-show="activeTab === 'kanban'" x-transition>
+      <div id="board" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for column in [('todo', 'À faire', 'bg-gray-100'), ('doing', 'En cours', 'bg-blue-100'), ('done', 'Terminé', 'bg-green-100')] %}
+          <div class="{{ column[2] }} rounded-xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold text-gray-800">{{ column[1] }}</h3>
+              <span class="bg-white px-2 py-1 rounded-lg text-sm text-gray-600">
+                {{ tasks|selectattr("status", "equalto", column[0])|list|length }}
+              </span>
+            </div>
+            <ul id="{{ column[0] }}" class="min-h-[400px] space-y-3">
+              {% for task in tasks if task.status == column[0] %}
+                <li class="bg-white p-4 rounded-lg shadow cursor-move hover:shadow-lg transition-shadow" data-id="{{ task.id }}">
+                  <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-medium text-gray-800">{{ task.title }}</h4>
+                    <button class="text-gray-400 hover:text-gray-600">
+                      <i class='bx bx-dots-vertical-rounded'></i>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                      <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">Normal</span>
+                    </div>
+                    <div class="flex -space-x-2">
+                      <div class="w-6 h-6 bg-gray-300 rounded-full"></div>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Members Tab -->
+    <div x-show="activeTab === 'members'" x-transition>
+      <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-semibold">Membres du projet</h3>
+          <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <i class='bx bx-user-plus mr-1'></i>Inviter
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-4">
+              <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center text-white font-medium">
+                {{ current_user.username[0].upper() }}
+              </div>
+              <div>
+                <h4 class="font-medium text-gray-800">{{ current_user.first_name }} {{ current_user.last_name }}</h4>
+                <p class="text-sm text-gray-600">{{ current_user.email }}</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-lg text-sm font-medium">Admin</span>
+              <span class="flex items-center text-green-600 text-sm">
+                <i class='bx bxs-circle text-xs mr-1'></i>En ligne
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Tab -->
+    <div x-show="activeTab === 'files'" x-transition>
+      <div class="max-w-4xl mx-auto">
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+          <i class='bx bx-cloud-upload text-6xl text-gray-400 mb-4'></i>
+          <p class="text-gray-600 mb-2">Glissez-déposez vos fichiers ici</p>
+          <p class="text-sm text-gray-500 mb-4">ou</p>
+          <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            Parcourir les fichiers
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Panel -->
+  <div x-show="showChatPanel" 
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="translate-x-full"
+       x-transition:enter-end="translate-x-0"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="translate-x-0"
+       x-transition:leave-end="translate-x-full"
+       class="fixed right-0 top-16 h-full w-96 bg-white shadow-2xl z-40">
+    
+    <div class="flex flex-col h-full">
+      <div class="flex items-center justify-between p-4 border-b">
+        <h3 class="font-semibold text-lg">Chat du projet</h3>
+        <button @click="showChatPanel = false" class="text-gray-400 hover:text-gray-600">
+          <i class='bx bx-x text-2xl'></i>
+        </button>
+      </div>
+      
+      <div class="flex-1 overflow-y-auto p-4" id="chat-messages">
+        <!-- Messages will appear here -->
+        <div class="text-center text-gray-500 py-8">
+          <i class='bx bx-message-square-dots text-4xl mb-2'></i>
+          <p>Aucun message pour le moment</p>
+        </div>
+      </div>
+      
+      <div class="border-t p-4">
+        <form id="chat-form" class="flex space-x-2">
+          <input type="text" 
+                 id="chat-input" 
+                 class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+                 placeholder="Tapez votre message...">
+          <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <i class='bx bx-send'></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div x-show="showTaskModal" class="fixed inset-0 z-50" style="display: none;">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="fixed inset-0 bg-black opacity-50" @click="showTaskModal = false"></div>
+      
+      <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6">Nouvelle tâche</h3>
+        
+        <form id="createTaskForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+              <input type="text" name="title" required 
+                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea name="description" rows="3" 
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+              <select name="priority" 
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="low">Basse</option>
+                <option value="normal" selected>Normale</option>
+                <option value="high">Haute</option>
+              </select>
+            </div>
+            
+            <div class="flex items-center justify-end space-x-3 pt-4">
+              <button type="button" @click="showTaskModal = false" 
+                      class="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors">
+                Annuler
+              </button>
+              <button type="submit" 
+                      class="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors">
+                Créer la tâche
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
-{% block scripts %}
+
 <script src="{{ url_for('static', filename='js/kanban.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 <script>
-  initKanban("{{ project.id }}");
+  const projectId = "{{ project.id }}";
+  const userId = "{{ current_user.id }}";
+  
+  // Initialize Kanban
+  initKanban(projectId);
+  
+  // Initialize Chat
+  initChat(projectId, userId);
+  
+  // Handle task creation
+  document.getElementById('createTaskForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const taskData = {
+      title: formData.get('title'),
+      description: formData.get('description'),
+      priority: formData.get('priority'),
+      project_id: projectId
+    };
+    
+    // Send to server via fetch or socket
+    fetch(`/projects/${projectId}/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(taskData)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showNotification('success', 'Succès', 'Tâche créée avec succès');
+        location.reload(); // For now, reload to see the new task
+      }
+    })
+    .catch(error => {
+      showNotification('error', 'Erreur', 'Impossible de créer la tâche');
+    });
+  });
 </script>
 {% endblock %}

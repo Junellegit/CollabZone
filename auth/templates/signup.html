@@ -1,55 +1,85 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex flex-col justify-center sm:py-12">
-  <div class="p-10 xs:p-0 mx-auto md:w-full md:max-w-md">
-    <h1 class="font-bold text-center text-2xl mb-5">Créez votre compte</h1>  
+<div class="min-h-screen w-full bg-gray-200 dark:bg-gray-900 flex items-center justify-center md:p-4 transition-colors duration-500">
+  <div class="w-full bg-white/10 dark:bg-gray-800/20 backdrop-blur-lg md:rounded-2xl shadow-2xl p-8 border-y md:border border-white/20">
     
+    <div class="text-center mb-8">
+        <a href="{{ url_for('projects.dashboard') }}">
+            <img src="{{ url_for('static', filename='Logo.png') }}" alt="CollabZone Logo" class="h-12 w-auto mx-auto mb-4">
+        </a>
+        <h2 class="text-3xl font-bold text-white drop-shadow-lg">Créez votre compte</h2>
+        <p class="text-white/80 mt-2">Rejoignez la collaboration en quelques clics.</p>
+    </div>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="mb-4 p-3 {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+          <div class="mb-4 p-3 rounded-lg {% if category == 'error' %}bg-red-500/50 text-white{% else %}bg-green-500/50 text-white{% endif %}">
             {{ message }}
           </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
-    
-    <div class="bg-white shadow w-full rounded-lg divide-y divide-gray-200">
-      <form class="px-5 py-7" method="POST" action="{{ url_for('auth.signup') }}">
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Adresse email</label>
-        <input type="email" name="email" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Pseudo</label>
-        <input type="text" name="username" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Prénom</label>
-        <input type="text" name="first_name" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Nom</label>
-        <input type="text" name="last_name" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Mot de passe</label>
-        <input type="password" name="password" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Bio (optionnel)</label>
-        <textarea name="bio" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" rows="3"></textarea>
-        
-        <button type="submit" class="transition duration-200 bg-blue-500 hover:bg-blue-600 focus:bg-blue-700 focus:shadow-sm focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-white w-full py-2.5 rounded-lg text-sm shadow-sm hover:shadow-md font-semibold text-center inline-block">
-            <span class="inline-block mr-2">S'inscrire</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 inline-block">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-        </button>
-      </form>
-      <div class="py-5">
-        <div class="text-center">
-          <a href="{{ url_for('auth.login') }}" class="transition duration-200 mx-5 px-5 py-4 cursor-pointer font-normal text-sm rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 ring-inset">
-              <span class="inline-block">Déjà un compte ? Connectez-vous</span>
-          </a>
+
+    <form method="POST" action="{{ url_for('auth.signup') }}" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="username" class="block text-sm font-medium text-white/90">Pseudo</label>
+          <div class="mt-1 relative">
+            <i class="bx bx-user absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+            <input id="username" name="username" type="text" required class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" placeholder="Votre pseudo">
+          </div>
+        </div>
+        <div>
+          <label for="email" class="block text-sm font-medium text-white/90">Adresse email</label>
+          <div class="mt-1 relative">
+            <i class="bx bx-envelope absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+            <input id="email" name="email" type="email" autocomplete="email" required class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" placeholder="vous@exemple.com">
+          </div>
+        </div>
+        <div>
+          <label for="first_name" class="block text-sm font-medium text-white/90">Prénom</label>
+          <div class="mt-1 relative">
+             <i class="bx bx-user-circle absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+            <input id="first_name" name="first_name" type="text" required class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" placeholder="Jean">
+          </div>
+        </div>
+        <div>
+          <label for="last_name" class="block text-sm font-medium text-white/90">Nom</label>
+          <div class="mt-1 relative">
+             <i class="bx bx-user-circle absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+            <input id="last_name" name="last_name" type="text" required class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" placeholder="Dupont">
+          </div>
         </div>
       </div>
-    </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium text-white/90">Mot de passe</label>
+        <div class="mt-1 relative">
+          <i class="bx bx-lock-alt absolute left-3 top-1/2 -translate-y-1/2 text-white/50"></i>
+          <input id="password" name="password" type="password" autocomplete="new-password" required class="w-full pl-10 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" placeholder="••••••••">
+        </div>
+      </div>
+
+      <div>
+        <label for="bio" class="block text-sm font-medium text-white/90">Bio (optionnel)</label>
+        <div class="mt-1 relative">
+          <textarea id="bio" name="bio" class="w-full pl-3 pr-3 py-2.5 bg-white/20 dark:bg-gray-900/30 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-400 focus:outline-none transition placeholder:text-white/50" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900/50 transition-all transform hover:scale-105">
+          Créer mon compte
+        </button>
+      </div>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-white/70">
+      Déjà un compte ?
+      <a href="{{ url_for('auth.login') }}" class="font-medium text-purple-300 hover:text-purple-200 transition">Connectez-vous</a>
+    </p>
   </div>
 </div>
 {% endblock %}
