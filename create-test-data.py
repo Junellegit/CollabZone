@@ -17,21 +17,22 @@ def create_test_data():
         
         # Create test user
         test_user = User(
+            email="test@example.com",
             username="testuser",
             first_name="Test",
             last_name="User",
             password_hash=generate_password_hash("password123", method='pbkdf2:sha256'),
-            bio="I'm a test user",
+            bio="Je suis un utilisateur de test",
             role="etudiant"
         )
         db.session.add(test_user)
         db.session.commit()
-        print("✓ Created test user (username: testuser, password: password123)")
+        print("✓ Created test user (email: test@example.com, password: password123)")
         
         # Create test project
         test_project = Project(
-            name="Test Project",
-            description="This is a test project to demonstrate the Kanban board",
+            name="Projet de Test",
+            description="Ceci est un projet de test pour démontrer le tableau Kanban",
             owner_id=test_user.id
         )
         db.session.add(test_project)
@@ -40,13 +41,13 @@ def create_test_data():
         
         # Create test tasks
         tasks = [
-            Task(title="Design the database schema", status="done", project_id=test_project.id),
-            Task(title="Implement user authentication", status="done", project_id=test_project.id),
-            Task(title="Create the Kanban board", status="doing", project_id=test_project.id),
-            Task(title="Add real-time updates", status="doing", project_id=test_project.id),
-            Task(title="Implement file uploads", status="todo", project_id=test_project.id),
-            Task(title="Add user profiles", status="todo", project_id=test_project.id),
-            Task(title="Create project chat", status="todo", project_id=test_project.id),
+            Task(title="Concevoir le schéma de base de données", status="done", project_id=test_project.id),
+            Task(title="Implémenter l'authentification", status="done", project_id=test_project.id),
+            Task(title="Créer le tableau Kanban", status="doing", project_id=test_project.id),
+            Task(title="Ajouter les mises à jour en temps réel", status="doing", project_id=test_project.id),
+            Task(title="Implémenter l'upload de fichiers", status="todo", project_id=test_project.id),
+            Task(title="Ajouter les profils utilisateurs", status="todo", project_id=test_project.id),
+            Task(title="Créer le chat de projet", status="todo", project_id=test_project.id),
         ]
         
         for task in tasks:
@@ -55,10 +56,10 @@ def create_test_data():
         db.session.commit()
         print("✓ Created test tasks")
         
-        print("\n=== Test data created successfully! ===")
-        print("You can now login with:")
-        print("Username: testuser")
-        print("Password: password123")
+        print("\n=== Données de test créées avec succès! ===")
+        print("Vous pouvez maintenant vous connecter avec:")
+        print("Email: test@example.com")
+        print("Mot de passe: password123")
 
 if __name__ == "__main__":
     create_test_data()

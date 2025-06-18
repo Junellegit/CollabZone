@@ -13,7 +13,8 @@ def generate_uuid():
 
 class User(UserMixin, db.Model):
     id = db.Column(db.String(32), primary_key=True, default=generate_uuid)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)  # Pseudo/nickname
     password_hash = db.Column(db.String(128), nullable=False)
     first_name = db.Column(db.String(80), nullable=True)
     last_name = db.Column(db.String(80), nullable=True)

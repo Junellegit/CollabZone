@@ -7,13 +7,13 @@ from models import db, User
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
+        email = request.form.get("email")
         password = request.form.get("password")
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user)
             return redirect(url_for("projects.dashboard"))
-        flash("Identifiants incorrects", "error")
+        flash("Email ou mot de passe incorrect", "error")
     return render_template("auth/login.html")
 
 
@@ -27,19 +27,24 @@ def logout():
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
+        username = request.form.get('username')  # Pseudo
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         password = request.form.get('password')
         bio = request.form.get('bio', '')
 
-        user = User.query.filter_by(username=username).first()
-
-        if user:
-            flash('Username already exists.')
+        # Check if email or username already exists
+        if User.query.filter_by(email=email).first():
+            flash('Cette adresse email est déjà utilisée.', 'error')
+            return redirect(url_for('auth.signup'))
+        
+        if User.query.filter_by(username=username).first():
+            flash('Ce pseudo est déjà pris.', 'error')
             return redirect(url_for('auth.signup'))
 
         new_user = User(
+            email=email,
             username=username,
             first_name=first_name,
             last_name=last_name,
@@ -50,7 +55,8 @@ def signup():
 
         db.session.add(new_user)
         db.session.commit()
-
+        
+        flash('Compte créé avec succès! Vous pouvez maintenant vous connecter.', 'success')
         return redirect(url_for('auth.login'))
 
     return render_template('auth/signup.html')

@@ -3,33 +3,50 @@
 {% block content %}
 <div class="min-h-screen bg-gray-100 flex flex-col justify-center sm:py-12">
   <div class="p-10 xs:p-0 mx-auto md:w-full md:max-w-md">
-    <h1 class="font-bold text-center text-2xl mb-5">Create your Account</h1>  
+    <h1 class="font-bold text-center text-2xl mb-5">Créez votre compte</h1>  
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-3 {% if category == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
     <div class="bg-white shadow w-full rounded-lg divide-y divide-gray-200">
       <form class="px-5 py-7" method="POST" action="{{ url_for('auth.signup') }}">
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Username</label>
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Adresse email</label>
+        <input type="email" name="email" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
+        
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Pseudo</label>
         <input type="text" name="username" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">First Name</label>
+        
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Prénom</label>
         <input type="text" name="first_name" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Last Name</label>
+        
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Nom</label>
         <input type="text" name="last_name" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Password</label>
+        
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Mot de passe</label>
         <input type="password" name="password" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" required />
-        <label class="font-semibold text-sm text-gray-600 pb-1 block">Bio</label>
-        <textarea name="bio" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full"></textarea>
+        
+        <label class="font-semibold text-sm text-gray-600 pb-1 block">Bio (optionnel)</label>
+        <textarea name="bio" class="border rounded-lg px-3 py-2 mt-1 mb-5 text-sm w-full" rows="3"></textarea>
+        
         <button type="submit" class="transition duration-200 bg-blue-500 hover:bg-blue-600 focus:bg-blue-700 focus:shadow-sm focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 text-white w-full py-2.5 rounded-lg text-sm shadow-sm hover:shadow-md font-semibold text-center inline-block">
-            <span class="inline-block mr-2">Sign Up</span>
+            <span class="inline-block mr-2">S'inscrire</span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 inline-block">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
         </button>
       </form>
       <div class="py-5">
-        <div class="grid grid-cols-2 gap-1">
-          <div class="text-center sm:text-left whitespace-nowrap">
-            <a href="{{ url_for('auth.login') }}" class="transition duration-200 mx-5 px-5 py-4 cursor-pointer font-normal text-sm rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 ring-inset">
-                <span class="inline-block ml-1">Already have an account? Login</span>
-            </a>
-          </div>
+        <div class="text-center">
+          <a href="{{ url_for('auth.login') }}" class="transition duration-200 mx-5 px-5 py-4 cursor-pointer font-normal text-sm rounded-lg text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-200 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 ring-inset">
+              <span class="inline-block">Déjà un compte ? Connectez-vous</span>
+          </a>
         </div>
       </div>
     </div>
