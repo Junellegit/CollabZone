@@ -1,76 +1,80 @@
-# CollabZone
+# CollabZone – Mini Skeleton (100 % Python)
 
-Une application web de gestion de projets collaboratifs, simple, rapide et moderne, pour les équipes scolaires et professionnelles.
-
----
-
-## 🚀 Fonctionnalités principales
-
-- **Gestion visuelle des tâches** : Kanban drag & drop (Trello-like)
-- **Chat d’équipe en temps réel** : système de messagerie instantanée
-- **Partage de fichiers** : upload simple, interface centrée, aperçu des fichiers partagés
-- **Tableau de bord** : suivi statistique et fil d’actualité (feed) de l’équipe (fichiers, messages…)
-- **Notifications flottantes** : toast en temps réel lors des actions importantes
-- **Interface responsive et moderne** : design épuré (TailwindCSS), avatars, icônes, couleurs douces
+CollabZone est une application de gestion de projets pensée pour un usage académique
+(écoles, universités, bootcamps).  
+Cette version « mini » se concentre sur la simplicité : **aucun Node.js, aucun
+build front**, tout se pilote avec Python et un CDN Tailwind.
 
 ---
 
-## 🖥️ Aperçu
+## Fonctionnalités principales
 
-<img src="static/img/Screenshot.png" width="600" alt="aperçu CollabZone">
-
----
-
-## 🛠️ Tech Stack
-
-- **Python 3 / Flask**
-- **Flask-SocketIO** (chat temps réel)
-- **Flask-SQLAlchemy** (base de données SQLite ou MySQL/PostgreSQL)
-- **TailwindCSS** (frontend rapide, responsive)
-- **Javascript natif** (drag & drop, toast, etc.)
-- **HTML5/CSS3**
+| Domaine            | Détails                                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| Authentification   | Inscription (pseudo, prénom, nom, bio), connexion/déconnexion, protection Flask-Login             |
+| Rôles              | *étudiant* (par défaut), extensible (*professeur*, *admin*, etc.)                                  |
+| Projets            | CRUD projets, tableau **Kanban** (todo / in-progress / done)                                       |
+| Temps réel         | Mise à jour Kanban + chat de projet via **Flask-SocketIO**                                         |
+| Partage de fichiers| Uploads locaux (dossier *static/uploads*)                                                          |
+| Stockage           | SQLite (zéro config)                                                                               |
+| UI                 | Tailwind JIT CDN + quelques composants Alpine/HTMX (facultatif)                                    |
 
 ---
 
-## ⚡ Installation locale
+## Arborescence
 
-1. **Cloner le projet**
-    ```bash
-    git clone https://github.com/ton-user/collabzone.git
-    cd collabzone
-    ```
+.
+├── app.py # Point d’entrée, crée l’application
+├── config.py # Configuration (SECRET_KEY, DB, SocketIO mode)
+├── models.py # SQLAlchemy : User, Project, Task, Message, File
+├── requirements.txt
+│
+├── auth/ # Inscription / connexion
+│ ├── init.py
+│ ├── routes.py
+│ └── templates/
+│ ├── signup.html
+│ └── login.html
+│
+├── projects/ # Tableau Kanban & vues projet
+│ ├── init.py
+│ ├── routes.py
+│ └── sockets.py
+│
+├── chat/ # Namespace Socket.IO dédié au chat
+│ ├── init.py
+│ └── sockets.py
+│
+├── templates/ # Layout global, navbar, etc.
+│ ├── base.html
+│ └── navbar.html
+│
+└── static/
+└── js/ # kanban.js, chat.js, app.js (libres à remplir)
 
-2. **Installer les dépendances**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate      # ou venv\Scripts\activate sur Windows
-    pip install -r requirements.txt
-    ```
-
-3. **Lancer l’app**
-    ```bash
-    flask run    # ou python app.py
-    ```
-
-4. Ouvre [http://localhost:5000](http://localhost:5000) dans ton navigateur.
-
----
-
-## ☁️ Déploiement rapide
-
-- **Render.com**
-    - Pousse sur GitHub, relie à Render, build auto :  
-      Build command : `pip install -r requirements.txt`  
-      Start command : `gunicorn app:app`
-    - [Voir tuto Render](https://render.com/docs/deploy-flask)
-
-- **Railway.app**
-    - Déploie depuis GitHub, commande de lancement identique.
-
-- **VPS / Nginx / Gunicorn**
-    - Pour usage avancé, voir guide Flask production.
+yaml
+Copier
+Modifier
 
 ---
 
-## 📦 Structure du projet
+## Prérequis
 
+* **Python ≥ 3.9**  
+* *pip* & *virtualenv* (fortement recommandé)
+
+---
+
+## Installation rapide
+
+```bash
+# 1) Cloner le dépôt et se placer dedans
+git clone https://github.com/votrecompte/CollabZone.git
+cd CollabZone
+
+# 2) Environnement virtuel
+python -m venv venv
+source venv/bin/activate    # Windows : venv\Scripts\activate
+
+# 3) Dépendances Python
+pip install -r requirements.txt

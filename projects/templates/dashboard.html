@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Mes projets</h1>
+<ul>
+  {% for project in projects %}
+  <li class="mb-2">
+    <a href="{{ url_for('projects.kanban', project_id=project.id) }}" class="text-blue-600">{{ project.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

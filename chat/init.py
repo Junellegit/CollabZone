@@ -1,0 +1,1 @@
+from .sockets import chat_ns  # réexport pour app.py

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block head_extra %}
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">{{ project.name }} — Kanban</h1>
+<div id="board" class="grid grid-cols-3 gap-4">
+  {% for column in ['todo','doing','done'] %}
+  <div class="bg-gray-100 p-2 rounded">
+    <h2 class="font-semibold capitalize mb-2">{{ column }}</h2>
+    <ul id="{{ column }}" class="min-h-[200px] space-y-2">
+      {% for task in tasks if task.status == column %}
+      <li class="bg-white p-2 rounded shadow" data-id="{{ task.id }}">{{ task.title }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/kanban.js') }}"></script>
+<script>
+  initKanban("{{ project.id }}");
+</script>
+{% endblock %}
