@@ -1,15 +1,20 @@
-from flask_socketio import Namespace, emit, join_room
-from models import db, Task
+from flask_socketio import Namespace, emit
+from flask_login import current_user
+from flask import render_template
+from . import chat_bp
 
-class KanbanNamespace(Namespace):
-    def on_join(self, data):
-        join_room(data["project_id"])
+@chat_bp.route('/')
+def chat_box():
+    return render_template('chat_box.html')
 
-    def on_move_task(self, data):
-        task = Task.query.get(data["task_id"])
-        if task:
-            task.status = data["status"]
-            db.session.commit()
-            emit("task_moved", data, room=data["project_id"])
+class ChatNamespace(Namespace):
+    def on_connect(self):
+        print(f"{current_user.username} connecté au chat")
+        emit('user_connected', {'user': current_user.username}, broadcast=True)
 
-kanban_ns = KanbanNamespace("/kanban")
+    def on_message(self, data):
+        # on renvoie le message à tous
+        emit('message', {
+            'user': current_user.username,
+            'msg': data['msg']
+        }, broadcast=True)

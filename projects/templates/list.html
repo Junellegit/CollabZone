@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="container mt-4">
+    <h2>Mes projets</h2>
+    <a href="{{ url_for('projects.create_project') }}" class="btn btn-primary mb-3">
+      + Nouveau projet
+    </a>
+    {% if projects %}
+      <ul class="list-group">
+        {% for project in projects %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('projects.manage_project', project_id=project.id) }}">
+              {{ project.name }}
+            </a>
+            <span class="badge badge-secondary">
+              {{ project.memberships|length }} membres
+            </span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">Vous n'êtes membre d'aucun projet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

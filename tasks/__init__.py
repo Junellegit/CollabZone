@@ -1,10 +1,10 @@
 from flask import Blueprint
 
-projects_bp = Blueprint(
-    'projects',
+tasks_bp = Blueprint(
+    'tasks',
     __name__,
     template_folder='templates',
-    url_prefix='/projects'
+    url_prefix='/tasks'
 )
 
 from . import routes

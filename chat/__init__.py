@@ -1,6 +1,12 @@
 from flask import Blueprint
-from .sockets import chat_ns
 
-chat_bp = Blueprint('chat', __name__, template_folder='templates')
+# Blueprint pour la partie HTTP (affichage du chat)
+chat_bp = Blueprint(
+    'chat',
+    __name__,
+    template_folder='templates',
+    url_prefix='/chat'
+)
 
-__all__ = ['chat_bp', 'chat_ns']
+# On importe les handlers WebSocket (namespace) juste après
+from . import sockets

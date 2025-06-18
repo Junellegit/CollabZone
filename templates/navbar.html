@@ -1,76 +1,21 @@
-<nav class="gradient-bg glass shadow-lg mb-8 sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-    <div class="flex items-center gap-4">
-      <a href="{{ url_for('projects.dashboard') }}" class="flex items-center gap-2 text-white font-bold text-xl tracking-tight drop-shadow-lg">
-        <img src="{{ url_for('static', filename='IconLogo.png') }}" alt="CollabZone Icon" class="h-8 w-auto md:hidden animate-float">
-        <img src="{{ url_for('static', filename='Logo.png') }}" alt="CollabZone Logo" class="h-8 w-auto hidden md:block">
-      </a>
-      <span class="hidden md:inline-block ml-4 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold tracking-wider animate-gradient">Plateforme collaborative</span>
-    </div>
-    <div class="flex items-center gap-4">
-      {% if current_user.is_authenticated %}
-        <a href="{{ url_for('projects.profile') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/20 hover:bg-black/40 text-white font-medium shadow transition">
-          <i class="bx bx-user-circle text-xl"></i>
-          <span class="hidden sm:inline">Profil</span>
-        </a>
-        <form action="{{ url_for('auth.logout') }}" method="post" class="inline">
-          <button class="flex items-center gap-2 px-3 py-1 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium shadow transition" type="submit">
-            <i class="bx bx-log-out"></i>
-            <span class="hidden sm:inline">Déconnexion</span>
-          </button>
-        </form>
-      {% else %}
-        <a href="{{ url_for('auth.login') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-black/20 hover:bg-black/40 text-white font-medium shadow transition">
-          <i class="bx bx-log-in"></i>
-          <span>Login</span>
-        </a>
-        <a href="{{ url_for('auth.signup') }}" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-pink-400 hover:bg-pink-500 text-white font-medium shadow transition">
-          <i class="bx bx-user-plus"></i>
-          <span>Sign Up</span>
-        </a>
-      {% endif %}
-      <button @click="darkMode = !darkMode" class="ml-2 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition" title="Basculer le mode sombre">
-        <i :class="darkMode ? 'bx bx-sun' : 'bx bx-moon'" class="text-lg"></i>
-      </button>
-    </div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="{{ url_for('root') }}">CollabZone</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('projects.list_projects') }}">Projets</a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('tasks.create_task') }}">Nouvelle Tâche</a></li>
+      <li class="nav-item"><a class="nav-link" href="{{ url_for('chat.chat_box') }}">Chat</a></li>
+    </ul>
+    {% if current_user.is_authenticated %}
+      <span class="navbar-text mr-3">Bonjour {{ current_user.username }}</span>
+      <a class="btn btn-outline-secondary" href="{{ url_for('auth.logout') }}">Déconnexion</a>
+    {% else %}
+      <a class="btn btn-outline-primary mr-2" href="{{ url_for('auth.login') }}">Connexion</a>
+      <a class="btn btn-primary" href="{{ url_for('auth.signup') }}">Inscription</a>
+    {% endif %}
   </div>
 </nav>
-<script>
-  document.addEventListener('alpine:init', () => {
-    // Animation gradient sur le badge
-    const animateGradient = () => {
-      document.querySelectorAll('.animate-gradient').forEach(el => {
-        el.style.background = 'linear-gradient(90deg, #7c3aed, #06b6d4, #f472b6, #fbbf24)';
-        el.style.backgroundSize = '200% 200%';
-        el.animate([
-          { backgroundPosition: 'left center' },
-          { backgroundPosition: 'right center' },
-          { backgroundPosition: 'left center' }
-        ], {
-          duration: 6000,
-          iterations: Infinity
-        });
-      });
-    };
-    animateGradient();
-  });
-</script>
-<style>
-  .gradient-bg {
-    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
-  }
-  .glass {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-</style>

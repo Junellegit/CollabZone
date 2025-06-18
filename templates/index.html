@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-4">
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Filtre de statut -->
+    <form method="get" class="form-inline mb-4">
+      <label class="mr-2" for="status">Filtrer les tâches :</label>
+      <select
+        name="status" id="status"
+        class="form-control mr-2"
+        onchange="this.form.submit()"
+      >
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Tous</option>
+        <option value="todo" {% if status_filter == 'todo' %}selected{% endif %}>À faire</option>
+        <option value="in-progress" {% if status_filter == 'in-progress' %}selected{% endif %}>En cours</option>
+        <option value="done" {% if status_filter == 'done' %}selected{% endif %}>Terminées</option>
+      </select>
+    </form>
+
+    <!-- Section Tâches -->
+    <section class="mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Mes tâches</h2>
+        <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">+ Nouvelle tâche</a>
+      </div>
+
+      {% if tasks %}
+        <ul class="list-group">
+          {% for task in tasks %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <small class="text-muted">[{{ task.project.name }}]</small>
+                <strong>{{ task.title }}</strong>
+                <span class="badge badge-secondary ml-2">{{ task.status }}</span>
+                <p class="mb-0 text-muted">{{ task.description or '— pas de description —' }}</p>
+              </div>
+              <div class="btn-group" role="group">
+                <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" class="btn btn-sm btn-outline-secondary">Éditer</a>
+                <form
+                  action="{{ url_for('tasks.delete_task', task_id=task.id) }}"
+                  method="post"
+                  onsubmit="return confirm('Confirmer la suppression de « {{ task.title }} » ?');"
+                  style="display:inline;"
+                >
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
+                </form>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">Aucune tâche pour le filtre sélectionné.</p>
+      {% endif %}
+    </section>
+
+    <!-- Section Chat & Activités -->
+    <section>
+      <h2>Chat & Activités</h2>
+      <!-- Votre code actuel pour afficher les messages -->
+    </section>
+  </div>
+{% endblock %}

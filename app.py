@@ -1,70 +1,71 @@
-from flask import Flask, render_template
-from flask_login import LoginManager
+import os
+from flask import Flask, redirect, url_for, render_template, request
+from flask_login import LoginManager, login_required, current_user
 from flask_socketio import SocketIO
-from config import Config
-from models import db
 
-login_manager = LoginManager()
-login_manager.login_view = "auth.login"
+import config
+from models import db, Task, Message, Membership, User
 
-socketio = SocketIO(cors_allowed_origins="*")
+# Instanciation de SocketIO au niveau module
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
+    # Initialisation des extensions
     db.init_app(app)
+
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
-    socketio.init_app(app, async_mode=app.config.get('SOCKETIO_ASYNC_MODE', 'threading'))
 
-    # Blueprints
-    from auth import auth_bp
-    from projects import projects_bp, kanban_ns
-    from chat import chat_bp, chat_ns
-
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(projects_bp)
-    app.register_blueprint(chat_bp)
-    
-    # Register socket namespaces
-    socketio.on_namespace(kanban_ns)
-    socketio.on_namespace(chat_ns)
-
-    @app.route("/")
-    def index():
-        from flask import redirect, url_for
-        from flask_login import current_user
-        if current_user.is_authenticated:
-            return redirect(url_for('projects.dashboard'))
-        return redirect(url_for('auth.login'))
-
+    # Callback nécessaire pour Flask-Login
     @login_manager.user_loader
     def load_user(user_id):
-        from models import User
-        return User.query.get(user_id)
+        return User.query.get(int(user_id))
 
-    # Error handlers
-    @app.errorhandler(404)
-    def not_found_error(error):
-        return render_template('404.html'), 404
+    # Initialisation de SocketIO
+    socketio.init_app(app)
 
-    @app.errorhandler(500)
-    def internal_error(error):
-        db.session.rollback()
-        return "Internal Server Error: " + str(error), 500
+    # Enregistrement des blueprints
+    from auth.routes       import auth_bp
+    from chat               import chat_bp
+    from projects.routes   import projects_bp
+    from tasks.routes      import tasks_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(chat_bp)
+    app.register_blueprint(projects_bp)
+    app.register_blueprint(tasks_bp)
+
+    @app.route('/')
+    def root():
+        return redirect(url_for('dashboard'))
+
+    @app.route('/dashboard')
+    @login_required
+    def dashboard():
+        status_filter = request.args.get('status', 'all')
+        project_ids = [m.project_id for m in current_user.memberships]
+
+        # Filtrage des tâches par projet et statut
+        query = Task.query.filter(Task.project_id.in_(project_ids))
+        if status_filter in ['todo', 'in-progress', 'done']:
+            query = query.filter_by(status=status_filter)
+        tasks = query.order_by(Task.created_at.desc()).all()
+
+        messages = Message.query.order_by(Message.timestamp.desc()).all()
+        return render_template(
+            'index.html',
+            tasks=tasks,
+            messages=messages,
+            status_filter=status_filter
+        )
 
     return app
 
-
-def main():
+if __name__ == '__main__':
+    # Création de l'app puis lancement avec socketio
     app = create_app()
-    with app.app_context():
-        db.create_all()
-        print("Database tables created successfully")
-    
-    # Run with socketio
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
-
-
-if __name__ == "__main__":
-    main()
+    socketio.run(app, debug=True)

@@ -1,12 +1,20 @@
-# config.py
-from pathlib import Path
 import os
 
-BASE_DIR = Path(__file__).parent
+# Chemin absolu vers le dossier du projet
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-en-prod')
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR/'school_pm.sqlite'}"
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # Use eventlet for async mode to match gunicorn configuration
-    SOCKETIO_ASYNC_MODE = "eventlet"
+# Clé secrète pour Flask (changez-la en production !)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key')
+
+# URI de la base de données : on cherche d'abord la variable d'environnement DATABASE_URL,
+# sinon on crée un fichier SQLite 'collabzone.db' à la racine du projet.
+SQLALCHEMY_DATABASE_URI = os.environ.get(
+    'DATABASE_URL',
+    'sqlite:///' + os.path.join(BASEDIR, 'collabzone.db')
+)
+
+# Désactive le signal de suivi des modifications, pour ne pas polluer les logs
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# (Optionnel) Si vous voulez que Flask-SocketIO utilise Eventlet ou Gevent,
+# vous pouvez ajouter ici une config spécifique, mais ce n'est pas requis.
